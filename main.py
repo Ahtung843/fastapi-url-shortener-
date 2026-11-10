@@ -4,6 +4,7 @@ from pydantic import BaseModel, HttpUrl
 import uvicorn
 from database import SessionLocal, LinkDB
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 import secrets
 
 app = FastAPI(title="Мое API с PostgreSQL")
@@ -34,7 +35,7 @@ def short(link: LinkCreate, db: Session = Depends(get_db)):
 
 @app.get("/{short_code}")
 def short_codes(short_code: str, db: Session = Depends(get_db)):
-    db_link = db.query(LinkDB).filter(LinkDB.short_code == short_code).first()
+    db_link = db.scalar(select(LinkDB).where(LinkDB.short_code == short_code))
 
     if not db_link:
         raise HTTPException(status_code=404, detail="Ссылка не найдена")
@@ -46,7 +47,7 @@ def short_codes(short_code: str, db: Session = Depends(get_db)):
 
 @app.get("/stats/{short_code}")
 def stats(short_code: str, db: Session = Depends(get_db)):
-    db_link = db.query(LinkDB).filter(LinkDB.short_code == short_code).first()
+    db_link = db.scalar(select(LinkDB).where(LinkDB.short_code == short_code))
 
     if not db_link:
         raise HTTPException(status_code=404, detail="Ссылка не найдена")
